@@ -7,7 +7,7 @@ English edition: [`docs_en/README.md`](../docs_en/README.md)
 
 | 文書 | 内容 |
 |---|---|
-| [models.md](models.md) | 全モデルの運動方程式とハンドリング解析の解析解 |
+| [models.md](models.md) | 全モデルの運動方程式を仮定から導出。図つき |
 | [python-gui.md](python-gui.md) | Python シミュレーション GUI：導入、各タブ、実験例 |
 | [python-api.md](python-api.md) | Python パッケージリファレンスと C++ API との差異 |
 | [validation.md](validation.md) | Python 移植を C++ ライブラリに対して検証する方法 |

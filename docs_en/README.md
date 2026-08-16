@@ -8,7 +8,7 @@ Japanese counterpart with the same file name under
 
 | Document | Contents |
 |---|---|
-| [models.md](models.md) | Equations of motion of every model, and the closed-form handling results |
+| [models.md](models.md) | Every equation of motion derived from its assumptions, with figures |
 | [python-gui.md](python-gui.md) | The Python simulation GUI: install, tabs, worked examples |
 | [python-api.md](python-api.md) | Python package reference and the differences from the C++ API |
 | [validation.md](validation.md) | How the Python port is verified against the C++ library |

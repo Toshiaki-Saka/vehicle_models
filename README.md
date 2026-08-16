@@ -187,13 +187,14 @@ $$
 - **荷重移動**：ダブルトラックは1パス予測子（静荷重で $a_x, a_y$ を推定 → 荷重再計算 → 力再計算）。反復しないので実行時間が決定的です。
 - **単位**：SI（m, s, rad, N, kg）。角度は例外なく rad で、`deg2rad` / `rad2deg` を用意しています。
 
-詳細な運動方程式は [docs_ja/models.md](docs_ja/models.md) を参照してください。
+運動方程式は [docs_ja/models.md](docs_ja/models.md) に、仮定からの導出と図つきで
+まとめてあります。
 
 ## ドキュメント
 
 | 文書 | 日本語 | English |
 |---|---|---|
-| 運動方程式 | [docs_ja/models.md](docs_ja/models.md) | [docs_en/models.md](docs_en/models.md) |
+| 運動方程式（導出つき） | [docs_ja/models.md](docs_ja/models.md) | [docs_en/models.md](docs_en/models.md) |
 | Python GUI | [docs_ja/python-gui.md](docs_ja/python-gui.md) | [docs_en/python-gui.md](docs_en/python-gui.md) |
 | Python API | [docs_ja/python-api.md](docs_ja/python-api.md) | [docs_en/python-api.md](docs_en/python-api.md) |
 | 移植の検証 | [docs_ja/validation.md](docs_ja/validation.md) | [docs_en/validation.md](docs_en/validation.md) |
