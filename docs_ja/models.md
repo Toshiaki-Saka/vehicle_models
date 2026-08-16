@@ -129,8 +129,7 @@ $$
 \begin{bmatrix}
 v_y \\
 r
-\end{bmatrix}
-=
+\end{bmatrix} =
 \begin{bmatrix}
 -\dfrac{C_f + C_r}{m v_x} & -v_x - \dfrac{l_f C_f - l_r C_r}{m v_x} \\
 -\dfrac{l_f C_f - l_r C_r}{I_z v_x} & -\dfrac{l_f^2 C_f + l_r^2 C_r}{I_z v_x}
