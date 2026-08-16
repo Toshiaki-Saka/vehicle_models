@@ -130,7 +130,7 @@ choice as a number*.
   the actuator model lags behind the command; for path manoeuvres this plot is
   the driver's output.
 - **Yaw rate** — with the linear steady state as a reference line.
-- **Lateral acceleration** — with the tire limit $\mu g$ and the $0.4\,g$ line
+- **Lateral acceleration** — with the tire limit $\mu g$ and the $0.4\ g$ line
   above which the kinematic models are no longer valid.
 - **Body slip angle** — note the sign: the kinematic model always predicts a
   positive $\beta$ in a left turn, while any dynamic model turns negative above
@@ -223,7 +223,7 @@ between the models:
   lookahead distance $L_d$ and the angle $\eta$ to the target point,
 
   $$
-  L_d = \operatorname{clamp}(4 + 0.5\,v,\ 3,\ 18)\ [\mathrm{m}],
+  L_d = \mathrm{clamp}(4 + 0.5\ v,\ 3,\ 18)\ [\mathrm{m}],
     \qquad
     \delta = \arctan\frac{2 L \sin\eta}{L_d}
   $$
@@ -235,7 +235,7 @@ between the models:
   $\kappa$,
 
   $$
-  v = \min\left(\sqrt{\frac{0.35\,\mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
+  v = \min\left(\sqrt{\frac{0.35\ \mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
   $$
 
   then a backward pass at `accel_min` so braking starts before the corner and a
@@ -245,9 +245,18 @@ between the models:
   that point already; for the others the pose is shifted back by $l_r$ first,
 
   $$
-  \begin{bmatrix} x_r \\ y_r \end{bmatrix}
-    = \begin{bmatrix} x \\ y \end{bmatrix}
-    - l_r \begin{bmatrix} \cos\psi \\ \sin\psi \end{bmatrix}
+  \begin{bmatrix}
+  x_r \\
+  y_r
+  \end{bmatrix} =
+  \begin{bmatrix}
+  x \\
+  y
+  \end{bmatrix} - l_r
+  \begin{bmatrix}
+  \cos\psi \\
+  \sin\psi
+  \end{bmatrix}
   $$
 
   Without that, half the models would be steered from a point 1.5 m further
@@ -261,9 +270,9 @@ between the models:
   rear axle. Positive is left of the direction of travel.
 - **Speed** carries the reference profile as a dashed line — the gap on corner
   entry is the model failing to slow down in time, not the profile changing.
-- **Lateral acceleration** carries the limit $\mu g$ and the $0.4\,g$ line below
+- **Lateral acceleration** carries the limit $\mu g$ and the $0.4\ g$ line below
   which the kinematic models are defensible. The profile is planned for
-  $0.35\,\mu g$, so the whole run sits just under that line by design: this is the
+  $0.35\ \mu g$, so the whole run sits just under that line by design: this is the
   regime where the kinematic model is *supposed* to be adequate.
 
 ![Route overview](images/route_overview.png)
@@ -292,7 +301,7 @@ already asks for
 
 $$
 a_y = \frac{v^2}{R} = \frac{(20\ \mathrm{m/s})^2}{25\ \mathrm{m}}
-      = 16\ \mathrm{m/s^2} \approx 1.6\,g
+      = 16\ \mathrm{m/s^2} \approx 1.6\ g
 $$
 
 — demands 1.76 g of lateral acceleration from tires that have $\mu = 1.0$, and
@@ -336,12 +345,12 @@ anything.
   $$
   \omega_n = \sqrt{\det A},
     \qquad
-    \zeta = -\frac{\operatorname{tr} A}{2\sqrt{\det A}}
+    \zeta = -\frac{\mathrm{tr} A}{2\sqrt{\det A}}
   $$
 
   An unstable speed range is shaded.
 - **Eigenvalue locus** of the $[v_y,\ r]$ system, coloured by speed. Crossing into
-  the right half plane, $\operatorname{Re}\lambda > 0$, is the critical speed.
+  the right half plane, $\mathrm{Re}\lambda > 0$, is the critical speed.
 
 The table gives the same quantities as numbers, each with a short reading of
 what it means.
@@ -461,7 +470,7 @@ Manoeuvre tab, step steer, models *Kinematic (CoG)* + *Dynamic bicycle*. Run at
 5 m/s: the two yaw rates are on top of each other. Run at 20 m/s: the kinematic
 model over-predicts the yaw rate by about 1.5x (0.388 vs 0.248 rad/s for the
 default car), and the body slip angles have opposite signs. The lateral
-acceleration plot shows why — the run has crossed the $0.4\,g$ line.
+acceleration plot shows why — the run has crossed the $0.4\ g$ line.
 
 **2. Why the blended model exists.**
 Select the *Low-speed shuttle* preset, set the speed to 0.5 m/s and a 15 deg
@@ -495,12 +504,12 @@ model is adequate above walking pace and inadequate for a parking manoeuvre.
   `accel_min` / `accel_max`:
 
   $$
-  a_{x,\text{cmd}} = \operatorname{clamp}\!\left(K_p (v_{\text{ref}} - v)
-    + K_i \!\int (v_{\text{ref}} - v)\,dt,\ a_{x,\min},\ a_{x,\max}\right)
+  a_{x,\text{cmd}} = \mathrm{clamp}\left(K_p (v_{\text{ref}} - v) +
+  K_i \int (v_{\text{ref}} - v)\ dt,\ a_{x,\min},\ a_{x,\max}\right)
   $$
 
   For the kinematic models its output is the acceleration directly; for the
-  dynamic models it becomes a longitudinal force $F_x = m\,a_{x,\text{cmd}}$, so
+  dynamic models it becomes a longitudinal force $F_x = m\ a_{x,\text{cmd}}$, so
   the achieved acceleration is smaller by the driving resistance $F_{\text{res}}/m$.
 - **`speed_max` clamps the kinematic models.** If the initial speed of a
   manoeuvre exceeds it, a warning appears under the Run button: the kinematic

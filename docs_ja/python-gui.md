@@ -125,7 +125,7 @@ python -m vehicle_models_py.gui
   モデルだけです。経路追従系ではこのプロットがドライバの出力になります。
 - **ヨーレート** — 線形の定常値を基準線として重ねてあります。
 - **横加速度** — タイヤ限界 $\mu g$ と、キネマティックモデルが妥当でなくなる
-  $0.4\,g$ の線つき。
+  $0.4\ g$ の線つき。
 - **車体スリップ角** — 符号に注目してください。キネマティックモデルは左旋回で常に
   $\beta > 0$ ですが、ダイナミックモデルは
 
@@ -206,17 +206,17 @@ python demo_route.py --route my_course.csv --preset shuttle
   $\eta$ から
 
   $$
-  L_d = \operatorname{clamp}(4 + 0.5\,v,\ 3,\ 18)\ [\mathrm{m}],
+  L_d = \mathrm{clamp}(4 + 0.5\ v,\ 3,\ 18)\ [\mathrm{m}],
     \qquad
     \delta = \arctan\frac{2 L \sin\eta}{L_d}
   $$
 
-  目標点は、車両を*ルート上に投影した点*から弧長で $L_d$ だけ先に取ります。$x$ では
+  目標点は、車両を*ルート上に投影した点*から弧長で $L_d$ だけ先に取ります。 $x$ では
   なく弧長で探すので、道路が任意の角度に曲がっていても構いません。
 - **前後方向** — ルートの曲率 $\kappa$ から一度だけ計算した速度プロファイル
 
   $$
-  v = \min\left(\sqrt{\frac{0.35\,\mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
+  v = \min\left(\sqrt{\frac{0.35\ \mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
   $$
 
   に、`accel_min` による後ろ向きパス（コーナー手前から減速を始めるため）と
@@ -227,9 +227,18 @@ python demo_route.py --route my_course.csv --preset shuttle
   いますが、それ以外は姿勢を $l_r$ だけ後ろへずらしてから使います。
 
   $$
-  \begin{bmatrix} x_r \\ y_r \end{bmatrix}
-    = \begin{bmatrix} x \\ y \end{bmatrix}
-    - l_r \begin{bmatrix} \cos\psi \\ \sin\psi \end{bmatrix}
+  \begin{bmatrix}
+  x_r \\
+  y_r
+  \end{bmatrix} =
+  \begin{bmatrix}
+  x \\
+  y
+  \end{bmatrix} - l_r
+  \begin{bmatrix}
+  \cos\psi \\
+  \sin\psi
+  \end{bmatrix}
   $$
 
   これをしないと、半数のモデルが 1.5 m 前方の点を基準に操舵され、その分だけ毎回
@@ -242,8 +251,8 @@ python demo_route.py --route my_course.csv --preset shuttle
 - **横偏差** はルートからの符号付き距離で、後軸で測っています。進行方向左側が正です。
 - **速度** には基準プロファイルが破線で入ります。コーナー進入での乖離は、プロファイル
   が変わったのではなくモデルが減速しきれていないことを意味します。
-- **横加速度** には限界 $\mu g$ と、キネマティックモデルが正当化できる $0.4\,g$ の線が
-  入ります。プロファイルは $0.35\,\mu g$ で計画されているので、走行全体が設計上その線の
+- **横加速度** には限界 $\mu g$ と、キネマティックモデルが正当化できる $0.4\ g$ の線が
+  入ります。プロファイルは $0.35\ \mu g$ で計画されているので、走行全体が設計上その線の
   すぐ下に収まります。つまりここは、キネマティックモデルが妥当で*あるはず*の領域です。
 
 ![ルート全体](../docs_en/images/route_overview.png)
@@ -270,7 +279,7 @@ python demo_route.py --route my_course.csv --preset shuttle
 
 $$
 a_y = \frac{v^2}{R} = \frac{(20\ \mathrm{m/s})^2}{25\ \mathrm{m}}
-      = 16\ \mathrm{m/s^2} \approx 1.6\,g
+      = 16\ \mathrm{m/s^2} \approx 1.6\ g
 $$
 
 を要求し、実際には $\mu = 1.0$ のタイヤに 1.76 g を要求して、ルートから 17 m 外れて
@@ -305,18 +314,18 @@ $$
   $$
 
   曲線は $v^2/R$ が $\mu g$ を超えるところで打ち切られます。
-- **ヨーモードの固有振動数と減衰比**の速度依存（$1/v_x$ 項が支配的でなくなる
-  2 m/s 以上）。$A$ の固有値から
+- **ヨーモードの固有振動数と減衰比**の速度依存（ $1/v_x$ 項が支配的でなくなる
+  2 m/s 以上）。 $A$ の固有値から
 
   $$
   \omega_n = \sqrt{\det A},
     \qquad
-    \zeta = -\frac{\operatorname{tr} A}{2\sqrt{\det A}}
+    \zeta = -\frac{\mathrm{tr} A}{2\sqrt{\det A}}
   $$
 
   不安定な速度域には網掛けが入ります。
-- **固有値の軌跡**（$[v_y,\ r]$ 系、速度で色分け）。右半平面へ渡るところ
-  $\operatorname{Re}\lambda > 0$ が限界速度です。
+- **固有値の軌跡**（ $[v_y,\ r]$ 系、速度で色分け）。右半平面へ渡るところ
+  $\mathrm{Re}\lambda > 0$ が限界速度です。
 
 表は同じ量を数値で示し、それぞれに短い読み方が添えられます。
 
@@ -417,7 +426,7 @@ $\mu F_z$ を揃えてあるので、比較対象として残るのは飽和の�
 操縦タブ、ステップ操舵、モデルは *Kinematic (CoG)* ＋ *Dynamic bicycle*。5 m/s で
 走らせると両者のヨーレートは重なります。20 m/s では、キネマティックモデルがヨーレートを
 約 1.5 倍過大評価し（既定の乗用車で 0.388 対 0.248 rad/s）、車体スリップ角の符号が
-逆になります。理由は横加速度のプロットに出ています —— $0.4\,g$ の線を越えているのです。
+逆になります。理由は横加速度のプロットに出ています —— $0.4\ g$ の線を越えているのです。
 
 **2. ブレンドモデルが存在する理由。**
 *Low-speed shuttle* プリセットを選び、速度 0.5 m/s、ステップ 15 deg で
@@ -426,7 +435,7 @@ $\mu F_z$ を揃えてあるので、比較対象として残るのは飽和の�
 予測に沿います。
 
 **3. タイヤモデルは効くか？**
-3 deg のステップ操舵では Linear / Fiala / Pacejka はほぼ同じ答えを出します。$a_y$ が
+3 deg のステップ操舵では Linear / Fiala / Pacejka はほぼ同じ答えを出します。 $a_y$ が
 $\mu g$ に近づくまで振幅を上げると差が出ます —— 線形タイヤはクリップ直前までスティフ
 ネスを保ちますが、他の2つは手前から柔らかくなります。差の大きさは性能タブの限界横加速度
 で定量化できます。
@@ -449,12 +458,12 @@ $\mu g$ に近づくまで振幅を上げると差が出ます —— 線形タ�
   `accel_max` にクランプされます。
 
   $$
-  a_{x,\text{cmd}} = \operatorname{clamp}\!\left(K_p (v_{\text{ref}} - v)
-    + K_i \!\int (v_{\text{ref}} - v)\,dt,\ a_{x,\min},\ a_{x,\max}\right)
+  a_{x,\text{cmd}} = \mathrm{clamp}\left(K_p (v_{\text{ref}} - v) +
+  K_i \int (v_{\text{ref}} - v)\ dt,\ a_{x,\min},\ a_{x,\max}\right)
   $$
 
   キネマティックモデルではこの出力がそのまま加速度になり、ダイナミックモデルでは
-  前後力 $F_x = m\,a_{x,\text{cmd}}$ になるため、達成加速度は走行抵抗の分
+  前後力 $F_x = m\ a_{x,\text{cmd}}$ になるため、達成加速度は走行抵抗の分
   $F_{\text{res}}/m$ だけ小さくなります。
 - **`speed_max` はキネマティックモデルをクランプします。** 操縦の初期速度がこれを
   超えると Run ボタンの下に警告が出ます。キネマティックモデルだけが速度を制限され、

@@ -152,13 +152,13 @@ python demo_route.py --models all --overview route.png
 
 $$
 \delta = \arctan\frac{2 L \sin\eta}{L_d},
-  \qquad L_d = \operatorname{clamp}(4 + 0.5\,v,\ 3,\ 18)\ [\mathrm{m}]
+  \qquad L_d = \mathrm{clamp}(4 + 0.5\ v,\ 3,\ 18)\ [\mathrm{m}]
 $$
 
 前後方向が曲率 $\kappa$ から作った速度プロファイル
 
 $$
-v = \min\left(\sqrt{\frac{0.35\,\mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
+v = \min\left(\sqrt{\frac{0.35\ \mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
 $$
 
 （これに前後加速度制限の逆算パスを掛けたもの）の PI 追従です。全モデルを**後軸基準で操舵**するため、状態量が重心のモデルも同じ点で比較できます。
@@ -179,7 +179,7 @@ $$
 
 ## 設計上の注意
 
-- **符号規約**：$\delta > 0$ が左旋回（ヨーレート正）。タイヤは $\alpha > 0$ で $F_y > 0$。スリップ角は
+- **符号規約**： $\delta > 0$ が左旋回（ヨーレート正）。タイヤは $\alpha > 0$ で $F_y > 0$。スリップ角は
 
   $$
   \alpha_f = \delta - \arctan\frac{v_y + l_f r}{v_x},

@@ -44,7 +44,7 @@ and shows the differences between them; see [python-gui.md](python-gui.md).
 |---|---|---|---|
 | `UnicycleModel` | 3 | $x, y, \psi$ | Skid steer, planner-side abstraction. Can rotate in place (wrong for an Ackermann vehicle) |
 | `DifferentialDriveModel` | 3 | $x, y, \psi$ | Wheel angular rates as input; `toBodyVelocity` / `toWheelRates` convert both ways |
-| `KinematicBicycleModel` | 4 | $x, y, \psi, v$ | Reference point selectable: rear axle, CoG or front axle. Valid up to roughly $0.4\,g$ |
+| `KinematicBicycleModel` | 4 | $x, y, \psi, v$ | Reference point selectable: rear axle, CoG or front axle. Valid up to roughly $0.4\ g$ |
 | `KinematicBicycleSteerModel` | 5 | $+\ \delta$ | Adds a first order steering actuator with a rate limit. For validating controllers against real hardware |
 | `LinearLateralBicycleModel` | 5 | $x, y, \psi, v_y, r$ | Linear 2-DOF at constant $v_x$. $A$ and $B$ available directly — the design plant for LQR/MPC |
 | `DynamicBicycleModel<Tire>` | 6 | $x, y, \psi, v_x, v_y, r$ | Nonlinear single track; the tire model is a template parameter |

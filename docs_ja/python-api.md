@@ -56,7 +56,7 @@ normalize_state(state)   -> ndarray     # 角度の正規化・クランプ。in
 そのまま使えます。
 
 **単位は C++ と同じ SI**（m, s, rad, N, kg）。`deg2rad` / `rad2deg` は `types.py`
-にあります。$\delta > 0$ が左旋回で、ヨーレートは正になります。
+にあります。 $\delta > 0$ が左旋回で、ヨーレートは正になります。
 
 ---
 
@@ -227,7 +227,7 @@ Pursuit と、ルートの速度プロファイルに対する PI に、コー�
 プレビュー走査を組み合わせたものです。
 
 ### `route.py`
-基準ルートを折れ線として扱うモジュールです。$y = f(x)$ の曲線ではないので、経路が
+基準ルートを折れ線として扱うモジュールです。 $y = f(x)$ の曲線ではないので、経路が
 任意の角度に曲がっていても構いません。
 
 ```python
@@ -259,14 +259,14 @@ for res in results:
 
   $$
   v_i \le \min\left(\sqrt{\frac{a_{y,\max}}{\lvert \kappa_i \rvert}},\ v_{\max}\right),
-    \qquad a_{y,\max} = \eta\,\mu g
+    \qquad a_{y,\max} = \eta\ \mu g
   $$
 
   （係数 $\eta$ が `ay_ratio`、既定 0.35）、続いて `accel_min` による後ろ向き
   パスと `accel_max` による前向きパスを掛けて、全区間で
 
   $$
-  \left\lvert \frac{v_{i+1}^2 - v_i^2}{2\,\Delta s_i} \right\rvert
+  \left\lvert \frac{v_{i+1}^2 - v_i^2}{2\ \Delta s_i} \right\rvert
     \le a_{x,\max}
   $$
 
@@ -310,7 +310,7 @@ open("run.csv", "w").write(to_csv(results))
 `MODEL_CATALOG` が利用可能なモデルキー（`kin_rear`、`kin_cog`、`kin_steer`、
 `linear2dof`、`dynamic`、`blended`、`double_track`）を列挙し、`STATE_REFERENCE`
 が各モデルの $(x, y)$ が車両のどの点かを示します。`rear_axle_track(result,
-params)` は走行結果を後軸基準に変換するので、$l_r$ のオフセットが混入せずに
+params)` は走行結果を後軸基準に変換するので、 $l_r$ のオフセットが混入せずに
 モデル同士を比較できます。どの走行も同じチャネル集合
 （`x, y, yaw, vx, vy, v, r, beta, ax, ay, steer_cmd, steer, alpha_f, alpha_r,
 curvature, fz_fl…fz_rr, fy_f, fy_r, steer_l, steer_r`）を埋め、モデルが出せない

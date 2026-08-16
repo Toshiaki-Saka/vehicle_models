@@ -262,14 +262,14 @@ for res in results:
 
   $$
   v_i \le \min\left(\sqrt{\frac{a_{y,\max}}{\lvert \kappa_i \rvert}},\ v_{\max}\right),
-    \qquad a_{y,\max} = \eta\,\mu g
+    \qquad a_{y,\max} = \eta\ \mu g
   $$
 
   (the ratio $\eta$ is `ay_ratio`, 0.35 by default), then applies a backward pass
   at `accel_min` and a forward pass at `accel_max` so that
 
   $$
-  \left\lvert \frac{v_{i+1}^2 - v_i^2}{2\,\Delta s_i} \right\rvert
+  \left\lvert \frac{v_{i+1}^2 - v_i^2}{2\ \Delta s_i} \right\rvert
     \le a_{x,\max}
   $$
 

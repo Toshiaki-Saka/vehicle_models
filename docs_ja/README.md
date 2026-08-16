@@ -41,9 +41,9 @@ C++ ライブラリと並んで、**GUI シミュレータ付きの Python 移�
 |---|---|---|---|
 | `UnicycleModel` | 3 | $x, y, \psi$ | スキッドステア、プランナ側の抽象。その場旋回可（アッカーマン車両には不適） |
 | `DifferentialDriveModel` | 3 | $x, y, \psi$ | 車輪角速度入力。`toBodyVelocity` / `toWheelRates` で相互変換 |
-| `KinematicBicycleModel` | 4 | $x, y, \psi, v$ | 基準点を後軸／重心／前軸から選択。横加速度が概ね $0.4\,g$ 以下で妥当 |
+| `KinematicBicycleModel` | 4 | $x, y, \psi, v$ | 基準点を後軸／重心／前軸から選択。横加速度が概ね $0.4\ g$ 以下で妥当 |
 | `KinematicBicycleSteerModel` | 5 | $+\ \delta$ | 操舵アクチュエータの一次遅れ＋レート制限つき。制御器の実機検証向け |
-| `LinearLateralBicycleModel` | 5 | $x, y, \psi, v_y, r$ | 定常 $v_x$ での線形2自由度。$A$ / $B$ 行列を直接取得でき、LQR/MPC の設計プラント |
+| `LinearLateralBicycleModel` | 5 | $x, y, \psi, v_y, r$ | 定常 $v_x$ での線形2自由度。 $A$ / $B$ 行列を直接取得でき、LQR/MPC の設計プラント |
 | `DynamicBicycleModel<Tire>` | 6 | $x, y, \psi, v_x, v_y, r$ | 非線形単輪。タイヤモデルをテンプレートで差し替え |
 | `BlendedBicycleModel<Tire>` | 6 | 同上 | 低速でキネマティックへブレンド。低速シャトル／バレー領域の特異点対策 |
 | `DoubleTrackModel<Tire>` | 6 | 同上 | 4輪独立。前後・左右荷重移動、輪別アッカーマン舵角、複合スリップ |
@@ -158,7 +158,7 @@ characteristic speed: 28.13 m/s (101.3 km/h)
 
 ## 設計上の注意
 
-- **符号規約**：$\delta > 0$ が左旋回（ヨーレート正）。タイヤは $\alpha > 0$ で
+- **符号規約**： $\delta > 0$ が左旋回（ヨーレート正）。タイヤは $\alpha > 0$ で
   $F_y > 0$。スリップ角は
 
   $$
