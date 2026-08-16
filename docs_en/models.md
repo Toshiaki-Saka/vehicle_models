@@ -653,9 +653,13 @@ from them, recompute the loads, recompute the forces. It does not iterate to a
 fixed point, so the execution time is deterministic and a worst-case bound can
 be stated — which matters more on an ECU than the last percent of accuracy.
 
-**Yaw moment.** Summing $\mathbf{r}_i \times \mathbf{F}_i$ over the four wheels
-gives $M_z = \sum_i (x_i F_{y,i} - y_i F_{x,i})$. Substituting the four
-positions:
+**Yaw moment.** Sum the moment of every wheel force about the CoG:
+
+$$
+M_z = \sum_i \left(x_i F_{y,i} - y_i F_{x,i}\right)
+$$
+
+Substituting the four wheel positions:
 
 $$
 M_z = l_f\left(F_{y,fl} + F_{y,fr}\right) - l_r\left(F_{y,rl} + F_{y,rr}\right) +
