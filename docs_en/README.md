@@ -168,11 +168,7 @@ where model choice starts to matter is visible directly in the numbers.
 - **Sign convention**: $\delta > 0$ is a left turn (positive yaw rate). For
   tires, $\alpha > 0$ gives $F_y > 0$. Slip angles are
 
-  $$
-  \alpha_f = \delta - \arctan\frac{v_y + l_f r}{v_x},
-    \qquad
-    \alpha_r = -\arctan\frac{v_y - l_r r}{v_x}
-  $$
+  $\displaystyle \alpha_f = \delta - \arctan\frac{v_y + l_f r}{v_x}, \qquad \alpha_r = -\arctan\frac{v_y - l_r r}{v_x}$
 
 - **Low-speed singularity**: the $1/v_x$ of the dynamic models is floored by
   `guardDenominator`, so the derivative stays finite even at standstill. The

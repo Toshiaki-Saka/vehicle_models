@@ -181,11 +181,7 @@ $$
 
 - **符号規約**： $\delta > 0$ が左旋回（ヨーレート正）。タイヤは $\alpha > 0$ で $F_y > 0$。スリップ角は
 
-  $$
-  \alpha_f = \delta - \arctan\frac{v_y + l_f r}{v_x},
-    \qquad
-    \alpha_r = -\arctan\frac{v_y - l_r r}{v_x}
-  $$
+  $\displaystyle \alpha_f = \delta - \arctan\frac{v_y + l_f r}{v_x}, \qquad \alpha_r = -\arctan\frac{v_y - l_r r}{v_x}$
 
 - **低速特異点**：動力学モデルの $1/v_x$ は `guardDenominator` で下限を設けてあり、停止時も有限値を返します。ただし `low_speed_guard` を下回る領域の横運動は信用できません。`BlendedBicycleModel` を使ってください。
 - **荷重移動**：ダブルトラックは1パス予測子（静荷重で $a_x, a_y$ を推定 → 荷重再計算 → 力再計算）。反復しないので実行時間が決定的です。

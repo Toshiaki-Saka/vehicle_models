@@ -135,9 +135,7 @@ choice as a number*.
 - **Body slip angle** — note the sign: the kinematic model always predicts a
   positive $\beta$ in a left turn, while any dynamic model turns negative above
 
-  $$
-  v > \sqrt{\frac{l_r L C_r}{m l_f}}
-  $$
+  $\displaystyle v > \sqrt{\frac{l_r L C_r}{m l_f}}$
 
   the speed at which the rear axle needs a slip angle to generate its force —
   compare the linear steady state $\beta = \left(l_r - m l_f v^2/(L C_r)\right)/R$.
@@ -222,11 +220,7 @@ between the models:
 - **Lateral** — pure pursuit against the route. The steer angle follows from the
   lookahead distance $L_d$ and the angle $\eta$ to the target point,
 
-  $$
-  L_d = \mathrm{clamp}(4 + 0.5\ v,\ 3,\ 18)\ [\mathrm{m}],
-    \qquad
-    \delta = \arctan\frac{2 L \sin\eta}{L_d}
-  $$
+  $\displaystyle L_d = \mathrm{clamp}(4 + 0.5\ v,\ 3,\ 18)\ [\mathrm{m}], \qquad \delta = \arctan\frac{2 L \sin\eta}{L_d}$
 
   with the target taken $L_d$ metres *along the route* from the vehicle's
   projection onto it. Because the target is found by arc length rather than by
@@ -234,9 +228,7 @@ between the models:
 - **Longitudinal** — a speed profile computed once from the route curvature
   $\kappa$,
 
-  $$
-  v = \min\left(\sqrt{\frac{0.35\ \mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
-  $$
+  $\displaystyle v = \min\left(\sqrt{\frac{0.35\ \mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)$
 
   then a backward pass at `accel_min` so braking starts before the corner and a
   forward pass at `accel_max` so the profile is one the vehicle can produce. A PI
@@ -244,20 +236,7 @@ between the models:
 - Every model is steered **from its rear axle**. The kinematic models integrate
   that point already; for the others the pose is shifted back by $l_r$ first,
 
-  $$
-  \begin{bmatrix}
-  x_r \\
-  y_r
-  \end{bmatrix} =
-  \begin{bmatrix}
-  x \\
-  y
-  \end{bmatrix} - l_r
-  \begin{bmatrix}
-  \cos\psi \\
-  \sin\psi
-  \end{bmatrix}
-  $$
+  $\displaystyle x_r = x - l_r \cos\psi, \qquad y_r = y - l_r \sin\psi$
 
   Without that, half the models would be steered from a point 1.5 m further
   forward and would cut every corner by that much.
@@ -321,9 +300,7 @@ anything.
 
 - **Yaw rate gain**
 
-  $$
-  \frac{r}{\delta} = \frac{v}{L + K v^2}
-  $$
+  $\displaystyle \frac{r}{\delta} = \frac{v}{L + K v^2}$
 
   against the neutral-steer reference $v/L$. For an understeering vehicle it
   peaks at the characteristic speed $V_{ch} = \sqrt{L/K}$; for an oversteering one
@@ -334,19 +311,13 @@ anything.
 - **Steer angle to hold a radius**, split into the Ackermann term and the slip
   term,
 
-  $$
-  \delta = \underbrace{\frac{L}{R}}_{\text{geometry}} + \underbrace{K a_y}_{\text{tire slip}}
-  $$
+  $\displaystyle \delta = \underbrace{\frac{L}{R}}_{\text{geometry}} + \underbrace{K a_y}_{\text{tire slip}}$
 
   The curve stops where $v^2/R$ exceeds $\mu g$.
 - **Yaw mode frequency and damping** against speed (from 2 m/s upward, where the
   $1/v_x$ terms stop dominating), from the eigenvalues of $A$:
 
-  $$
-  \omega_n = \sqrt{\det A},
-    \qquad
-    \zeta = -\frac{\mathrm{tr} A}{2\sqrt{\det A}}
-  $$
+  $\displaystyle \omega_n = \sqrt{\det A}, \qquad \zeta = -\frac{\mathrm{tr} A}{2\sqrt{\det A}}$
 
   An unstable speed range is shaded.
 - **Eigenvalue locus** of the $[v_y,\ r]$ system, coloured by speed. Crossing into
@@ -375,17 +346,13 @@ seconds; it runs in the background and reports progress).
 - **Achieved $a_x$ against speed** — the commanded acceleration minus the driving
   resistance,
 
-  $$
-  a_x = a_{x,\text{cmd}} - \frac{F_{\text{res}}(v)}{m}
-  $$
+  $\displaystyle a_x = a_{x,\text{cmd}} - \frac{F_{\text{res}}(v)}{m}$
 
   which is why the achieved value falls off with speed.
 - **Handling diagram** — $\delta - L/R$ against $a_y$ from a slow ramp steer. The
   initial slope *is* the understeer gradient,
 
-  $$
-  K = \left.\frac{\partial}{\partial a_y}\left(\delta - \frac{L}{R}\right)\right|_{a_y \to 0}
-  $$
+  $\displaystyle K = \left.\frac{\partial}{\partial a_y}\left(\delta - \frac{L}{R}\right)\right|_{a_y \to 0}$
 
   (the closed-form $K$ is drawn as a reference); where the curve turns back is the
   tire limit, and the marked point is the maximum lateral acceleration the model
@@ -429,9 +396,7 @@ shape.
 - **Friction ellipse** — how much lateral force is left once a fraction of the
   friction is spent longitudinally:
 
-  $$
-  \frac{F_y}{F_{y,0}} = \sqrt{1 - \left(\frac{F_x}{\mu F_z}\right)^2}
-  $$
+  $\displaystyle \frac{F_y}{F_{y,0}} = \sqrt{1 - \left(\frac{F_x}{\mu F_z}\right)^2}$
 
   Spending 50 % of the friction on braking leaves
   $\sqrt{1 - 0.5^2} \approx 87\ \%$ of the lateral force; spending 80 % leaves
@@ -503,10 +468,7 @@ model is adequate above walking pace and inadequate for a parking manoeuvre.
 - **The speed controller** is a PI loop with anti-windup, clamped to
   `accel_min` / `accel_max`:
 
-  $$
-  a_{x,\text{cmd}} = \mathrm{clamp}\left(K_p (v_{\text{ref}} - v) +
-  K_i \int (v_{\text{ref}} - v)\ dt,\ a_{x,\min},\ a_{x,\max}\right)
-  $$
+  $\displaystyle a_{x,\text{cmd}} = \mathrm{clamp}\left(K_p (v_{\text{ref}} - v) + K_i \int (v_{\text{ref}} - v)\ dt,\ a_{x,\min},\ a_{x,\max}\right)$
 
   For the kinematic models its output is the acceleration directly; for the
   dynamic models it becomes a longitudinal force $F_x = m\ a_{x,\text{cmd}}$, so

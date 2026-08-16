@@ -129,9 +129,7 @@ python -m vehicle_models_py.gui
 - **車体スリップ角** — 符号に注目してください。キネマティックモデルは左旋回で常に
   $\beta > 0$ ですが、ダイナミックモデルは
 
-  ```math
-  v > \sqrt{\frac{l_r L C_r}{m l_f}}
-  ```
+  $\displaystyle v > \sqrt{\frac{l_r L C_r}{m l_f}}$
 
   すなわち後軸が横力を出すためにスリップ角を必要とする速度を超えると負に転じます
   （線形の定常解 $\beta = \left(l_r - m l_f v^2/(L C_r)\right)/R$ と比較）。この
@@ -205,19 +203,13 @@ python demo_route.py --route my_course.csv --preset shuttle
 - **横方向** — ルートに対する Pure Pursuit。前方注視距離 $L_d$ と目標点への角度
   $\eta$ から
 
-  ```math
-  L_d = \mathrm{clamp}(4 + 0.5\ v,\ 3,\ 18)\ [\mathrm{m}],
-    \qquad
-    \delta = \arctan\frac{2 L \sin\eta}{L_d}
-  ```
+  $\displaystyle L_d = \mathrm{clamp}(4 + 0.5\ v,\ 3,\ 18)\ [\mathrm{m}], \qquad \delta = \arctan\frac{2 L \sin\eta}{L_d}$
 
   目標点は、車両を*ルート上に投影した点*から弧長で $L_d$ だけ先に取ります。 $x$ では
   なく弧長で探すので、道路が任意の角度に曲がっていても構いません。
 - **前後方向** — ルートの曲率 $\kappa$ から一度だけ計算した速度プロファイル
 
-  ```math
-  v = \min\left(\sqrt{\frac{0.35\ \mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)
-  ```
+  $\displaystyle v = \min\left(\sqrt{\frac{0.35\ \mu g}{\lvert \kappa \rvert}},\ v_{\max}\right)$
 
   に、`accel_min` による後ろ向きパス（コーナー手前から減速を始めるため）と
   `accel_max` による前向きパス（車両が実現できるプロファイルにするため）を掛けた
@@ -226,20 +218,7 @@ python demo_route.py --route my_course.csv --preset shuttle
 - 全モデルを**後軸基準で操舵**します。キネマティックモデルはもともとその点を積分して
   いますが、それ以外は姿勢を $l_r$ だけ後ろへずらしてから使います。
 
-  ```math
-  \begin{bmatrix}
-  x_r \\
-  y_r
-  \end{bmatrix} =
-  \begin{bmatrix}
-  x \\
-  y
-  \end{bmatrix} - l_r
-  \begin{bmatrix}
-  \cos\psi \\
-  \sin\psi
-  \end{bmatrix}
-  ```
+  $\displaystyle x_r = x - l_r \cos\psi, \qquad y_r = y - l_r \sin\psi$
 
   これをしないと、半数のモデルが 1.5 m 前方の点を基準に操舵され、その分だけ毎回
   コーナーをショートカットしてしまいます。
@@ -298,9 +277,7 @@ $$
 
 - **ヨーレートゲイン**
 
-  ```math
-  \frac{r}{\delta} = \frac{v}{L + K v^2}
-  ```
+  $\displaystyle \frac{r}{\delta} = \frac{v}{L + K v^2}$
 
   と、ニュートラルステアの基準 $v/L$。アンダーステア車では特性速度
   $V_{ch} = \sqrt{L/K}$ でピークを取り、オーバーステア車では限界速度
@@ -309,19 +286,13 @@ $$
   線形予測が物理的に到達不可能な領域です。
 - **半径を保つための舵角**。アッカーマン項とスリップ項に分解して表示します。
 
-  ```math
-  \delta = \underbrace{\frac{L}{R}}_{\text{幾何}} + \underbrace{K a_y}_{\text{タイヤスリップ}}
-  ```
+  $\displaystyle \delta = \underbrace{\frac{L}{R}}_{\text{幾何}} + \underbrace{K a_y}_{\text{タイヤスリップ}}$
 
   曲線は $v^2/R$ が $\mu g$ を超えるところで打ち切られます。
 - **ヨーモードの固有振動数と減衰比**の速度依存（ $1/v_x$ 項が支配的でなくなる
   2 m/s 以上）。 $A$ の固有値から
 
-  ```math
-  \omega_n = \sqrt{\det A},
-    \qquad
-    \zeta = -\frac{\mathrm{tr} A}{2\sqrt{\det A}}
-  ```
+  $\displaystyle \omega_n = \sqrt{\det A}, \qquad \zeta = -\frac{\mathrm{tr} A}{2\sqrt{\det A}}$
 
   不安定な速度域には網掛けが入ります。
 - **固有値の軌跡**（ $[v_y,\ r]$ 系、速度で色分け）。右半平面へ渡るところ
@@ -346,17 +317,13 @@ $$
 - 全開加速と制動の **速度・距離の時間波形**。
 - **達成 $a_x$ の速度依存** — 指令加速度から走行抵抗を引いたもの
 
-  ```math
-  a_x = a_{x,\text{cmd}} - \frac{F_{\text{res}}(v)}{m}
-  ```
+  $\displaystyle a_x = a_{x,\text{cmd}} - \frac{F_{\text{res}}(v)}{m}$
 
   なので、速度が上がるほど達成値が落ちます。
 - **ハンドリング線図** — ゆっくりしたランプ操舵から得た $\delta - L/R$ 対 $a_y$。
   原点付近の傾きがそのままアンダーステア勾配
 
-  ```math
-  K = \left.\frac{\partial}{\partial a_y}\left(\delta - \frac{L}{R}\right)\right|_{a_y \to 0}
-  ```
+  $\displaystyle K = \left.\frac{\partial}{\partial a_y}\left(\delta - \frac{L}{R}\right)\right|_{a_y \to 0}$
 
   です（解析解の $K$ を基準線として描画）。曲線が折り返すところがタイヤ限界で、
   マークした点がそのモデルが到達する最大横加速度です。
@@ -391,9 +358,7 @@ $\mu F_z$ を揃えてあるので、比較対象として残るのは飽和の�
   3次立ち上がり、Magic Formula のピーク後の低下。
 - **摩擦楕円** — 摩擦の一部を前後方向に使ったとき、横力がどれだけ残るか：
 
-  ```math
-  \frac{F_y}{F_{y,0}} = \sqrt{1 - \left(\frac{F_x}{\mu F_z}\right)^2}
-  ```
+  $\displaystyle \frac{F_y}{F_{y,0}} = \sqrt{1 - \left(\frac{F_x}{\mu F_z}\right)^2}$
 
   摩擦の 50 % を制動に使うと横力は $\sqrt{1 - 0.5^2} \approx 87\ \%$ 残り、80 % を使うと
   $\sqrt{1 - 0.8^2} = 60\ \%$ になります。
@@ -457,10 +422,7 @@ $\mu g$ に近づくまで振幅を上げると差が出ます —— 線形タ�
 - **速度コントローラ** はアンチワインドアップ付きの PI ループで、`accel_min` /
   `accel_max` にクランプされます。
 
-  ```math
-  a_{x,\text{cmd}} = \mathrm{clamp}\left(K_p (v_{\text{ref}} - v) +
-  K_i \int (v_{\text{ref}} - v)\ dt,\ a_{x,\min},\ a_{x,\max}\right)
-  ```
+  $\displaystyle a_{x,\text{cmd}} = \mathrm{clamp}\left(K_p (v_{\text{ref}} - v) + K_i \int (v_{\text{ref}} - v)\ dt,\ a_{x,\min},\ a_{x,\max}\right)$
 
   キネマティックモデルではこの出力がそのまま加速度になり、ダイナミックモデルでは
   前後力 $F_x = m\ a_{x,\text{cmd}}$ になるため、達成加速度は走行抵抗の分

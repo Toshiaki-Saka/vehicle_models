@@ -257,18 +257,12 @@ for res in results:
   局所化されるため、自分自身に接近するようなルートでも正しく動きます。
 - `speed_profile(route, params, ...)` は各点の速度を曲率で制限し、
 
-  $$
-  v_i \le \min\left(\sqrt{\frac{a_{y,\max}}{\lvert \kappa_i \rvert}},\ v_{\max}\right),
-    \qquad a_{y,\max} = \eta\ \mu g
-  $$
+  $\displaystyle v_i \le \min\left(\sqrt{\frac{a_{y,\max}}{\lvert \kappa_i \rvert}},\ v_{\max}\right), \qquad a_{y,\max} = \eta\ \mu g$
 
   （係数 $\eta$ が `ay_ratio`、既定 0.35）、続いて `accel_min` による後ろ向き
   パスと `accel_max` による前向きパスを掛けて、全区間で
 
-  $$
-  \left\lvert \frac{v_{i+1}^2 - v_i^2}{2\ \Delta s_i} \right\rvert
-    \le a_{x,\max}
-  $$
+  $\displaystyle \left\lvert \frac{v_{i+1}^2 - v_i^2}{2\ \Delta s_i} \right\rvert \le a_{x,\max}$
 
   が成り立つようにします。これによりコーナー手前から減速が始まり、かつ車両が実際に
   実現できるプロファイルになります。
