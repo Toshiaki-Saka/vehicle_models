@@ -1,0 +1,16 @@
+build/
+out/
+.vs/
+.vscode/
+*.user
+
+# シミュレーション出力の CSV は無視するが、リポジトリ同梱の基準ルートは追跡する
+*.csv
+!data/reference_route.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/

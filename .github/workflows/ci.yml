@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / C++${{ matrix.std }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        std: [17, 20]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_CXX_STANDARD=${{ matrix.std }}
+          -DVEHICLE_MODELS_WERROR=ON
+
+      - name: Build
+        run: cmake --build build --config Release -j 4
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Install and consume as a package
+        if: matrix.os == 'ubuntu-latest' && matrix.std == '17'
+        run: |
+          cmake --install build --prefix "$PWD/stage"
+          cmake -S test/package -B build_pkg -DCMAKE_PREFIX_PATH="$PWD/stage"
+          cmake --build build_pkg
+          ./build_pkg/package_test
+
+      - name: Python port reproduces the C++ example
+        if: matrix.os == 'ubuntu-latest' && matrix.std == '17'
+        run: |
+          python -m pip install --upgrade numpy
+          python python/tools/compare_with_cpp.py ./build/step_steer
+
+  python:
+    name: Python port
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install -r python/requirements.txt
+
+      - name: Validate the port against the C++ unit tests
+        run: python python/tests/test_port.py
+
+      - name: Byte-compile the GUI
+        run: python -m compileall -q python/vehicle_models_py
