@@ -5,12 +5,17 @@
 
     python tools/compare_with_cpp.py ../build/step_steer
 
-Runs the compiled example, reproduces exactly the same experiment with the
-Python models, and reports the largest absolute difference per channel. The two
-implementations use the same equations, the same integrator and the same
-parameters, so the differences should be at round-off level (< 1e-9).
+Runs the compiled example, reproduces exactly the same experiment through the
+Python bindings, and reports the largest absolute difference per channel.
 
-Exit code 0 if every channel agrees within the tolerance.
+Both sides now execute the same C++ code, so the only difference left is the
+one the CSV introduces: examples/step_steer.cpp prints with "%.4f" for t and
+steer_deg and "%.6f" for the rest, which quantises the values it reports. The
+per-channel tolerance below is half of that quantum -- the tightest bound the
+file format admits. A tighter one (the 1e-9 this script used to apply to every
+column) can never be met no matter how well the two sides agree.
+
+Exit code 0 if every channel agrees within its tolerance.
 """
 
 from __future__ import annotations
@@ -31,7 +36,21 @@ from vehicle_models_py import (DoubleTrackModel, DynamicBicycleModel,
                                make_passenger_car_parameters, rad2deg,
                                side_slip_of, step)
 
-TOLERANCE = 1e-9
+# Decimal places examples/step_steer.cpp prints per column, in column order.
+CPP_DECIMALS = {"t": 4, "steer_deg": 4}
+CPP_DECIMALS_DEFAULT = 6
+
+
+def tolerance_for(channel: str) -> float:
+    """Half the quantum of the printed decimal representation.
+
+    A value landing exactly on the half-quantum is the legitimate worst case,
+    so the bound carries a relative slack to keep that tie from flipping on
+    the rounding of the comparison itself.
+    """
+    quantum = 10.0 ** -CPP_DECIMALS.get(channel, CPP_DECIMALS_DEFAULT)
+    return 0.5 * quantum * (1.0 + 1e-9)
+
 
 # examples/step_steer.cpp
 VX = 20.0
@@ -97,17 +116,19 @@ def main() -> int:
               % (len(cpp), len(py), n))
     cpp, py = cpp[:n], py[:n]
 
-    print("%-14s %14s %14s" % ("channel", "max |diff|", "verdict"))
+    print("%-14s %14s %14s %10s" % ("channel", "max |diff|", "tolerance",
+                                    "verdict"))
     worst_ok = True
     for i, name in enumerate(header):
         diff = float(np.max(np.abs(cpp[:, i] - py[:, i])))
-        ok = diff <= TOLERANCE
+        tol = tolerance_for(name)
+        ok = diff <= tol
         worst_ok = worst_ok and ok
-        print("%-14s %14.3e %14s" % (name, diff, "ok" if ok else "MISMATCH"))
+        print("%-14s %14.3e %14.3e %10s"
+              % (name, diff, tol, "ok" if ok else "MISMATCH"))
 
-    print("\n%s (tolerance %.0e over %d samples)"
-          % ("all channels agree" if worst_ok else "DIFFERENCES FOUND",
-             TOLERANCE, n))
+    print("\n%s over %d samples (tolerance = half the printed decimal quantum)"
+          % ("all channels agree" if worst_ok else "DIFFERENCES FOUND", n))
     return 0 if worst_ok else 1
 
 
