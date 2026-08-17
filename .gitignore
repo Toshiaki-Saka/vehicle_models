@@ -14,3 +14,11 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+
+# 拡張モジュールのビルド成果物（vehicle_models_py/_core）と wheel の中間物
+*.pyd
+*.so
+*.dylib
+*.egg-info/
+dist/
+_skbuild/

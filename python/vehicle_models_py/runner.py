@@ -159,10 +159,13 @@ class KinematicAdapter(ModelAdapter):
         v = float(s[kb.V])
         L = p.wheel_base()
         beta = 0.0
-        if self.base.reference is kb.ReferencePoint.CENTER_OF_GRAVITY:
+        # `==`, not `is`: ReferencePoint now comes from the C++ enum, and
+        # pybind11 hands back a fresh object each time instead of the interned
+        # singleton a Python Enum would return.
+        if self.base.reference == kb.ReferencePoint.CENTER_OF_GRAVITY:
             beta = self.base.side_slip(delta)
             r = v * math.cos(beta) * math.tan(delta) / L
-        elif self.base.reference is kb.ReferencePoint.FRONT_AXLE:
+        elif self.base.reference == kb.ReferencePoint.FRONT_AXLE:
             r = v * math.sin(delta) / L
         else:
             r = v * math.tan(delta) / L

@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Archlink Systems Lab
+[build-system]
+requires = ["scikit-build-core>=0.8", "pybind11>=2.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "vehicle_models_py"
+version = "0.1.0"
+description = "Python bindings and simulation GUI for the vehicle_models C++ library"
+readme = "python/README.md"
+requires-python = ">=3.8"
+license = { text = "Apache-2.0" }
+dependencies = ["numpy>=1.21"]
+
+[project.optional-dependencies]
+gui = ["matplotlib>=3.5"]
+
+[project.urls]
+Homepage = "https://github.com/Toshiaki-Saka/vehicle_models"
+
+[tool.scikit-build]
+# The C++ project lives at the repository root; the extension target is added
+# by python/CMakeLists.txt behind this option.
+cmake.version = ">=3.16"
+cmake.args = [
+  "-DVEHICLE_MODELS_BUILD_PYTHON=ON",
+  "-DVEHICLE_MODELS_BUILD_TESTS=OFF",
+  "-DVEHICLE_MODELS_BUILD_EXAMPLES=OFF",
+  "-DVEHICLE_MODELS_INSTALL=OFF",
+]
+wheel.packages = ["python/vehicle_models_py"]
+sdist.include = ["include", "python", "CMakeLists.txt", "cmake"]

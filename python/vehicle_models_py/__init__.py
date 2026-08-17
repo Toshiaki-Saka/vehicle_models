@@ -1,8 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2026 Archlink Systems Lab
-"""Python port of the ``vehicle_models`` header-only C++ library.
+"""Python interface to the ``vehicle_models`` header-only C++ library.
 
-The module layout follows the C++ headers one to one::
+The equations of motion live in ``include/vehicle_models/*.hpp`` and are
+reached through the ``_core`` pybind11 extension module. The modules below are
+re-export shims over it -- they add the numpy calling convention (state and
+input as 1-D arrays plus index constants) and a few GUI conveniences, and no
+physics::
 
     types.py             <- vehicle_models/types.hpp
     parameters.py        <- vehicle_models/vehicle_parameters.hpp
@@ -15,8 +19,12 @@ The module layout follows the C++ headers one to one::
     double_track.py      <- vehicle_models/double_track.hpp
     linear_analysis.py   <- vehicle_models/linear_analysis.hpp
 
-Everything on top of that (``maneuvers``, ``runner``, ``performance``, ``gui``)
-is simulation infrastructure that exists only on the Python side.
+Everything on top of that (``maneuvers``, ``runner``, ``performance``,
+``route``, ``animation``, ``gui``) is simulation infrastructure that exists
+only on the Python side.
+
+``_core`` is a compiled extension: build it with ``pip install .`` from the
+repository root, or with ``-DVEHICLE_MODELS_BUILD_PYTHON=ON``.
 """
 
 from .ackermann import (AckermannGeometry, WheelAngles, WheelSpeeds,

@@ -18,6 +18,7 @@ option(VEHICLE_MODELS_BUILD_TESTS    "Build unit tests"  ${VEHICLE_MODELS_IS_TOP
 option(VEHICLE_MODELS_BUILD_EXAMPLES "Build examples"    ${VEHICLE_MODELS_IS_TOP_LEVEL})
 option(VEHICLE_MODELS_INSTALL        "Generate install rules" ${VEHICLE_MODELS_IS_TOP_LEVEL})
 option(VEHICLE_MODELS_WERROR         "Treat warnings as errors in tests/examples" OFF)
+option(VEHICLE_MODELS_BUILD_PYTHON   "Build the pybind11 extension module" OFF)
 
 # ---------------------------------------------------------------------------
 # The library itself (header-only)
@@ -68,6 +69,16 @@ if(VEHICLE_MODELS_BUILD_EXAMPLES)
     add_executable(${example_name} examples/${example_name}.cpp)
     target_link_libraries(${example_name} PRIVATE vehicle_models vehicle_models_warnings)
   endforeach()
+endif()
+
+# ---------------------------------------------------------------------------
+# Python extension module
+#
+# The GUI and the simulation infrastructure in python/ call the C++ models
+# through this module, so the equations of motion exist exactly once.
+# ---------------------------------------------------------------------------
+if(VEHICLE_MODELS_BUILD_PYTHON)
+  add_subdirectory(python)
 endif()
 
 # ---------------------------------------------------------------------------
