@@ -2,31 +2,58 @@
 
 English edition: [`docs_en/python-api.md`](../docs_en/python-api.md)
 
-`python/vehicle_models_py` は C++ ヘッダをそのまま移植したものに、GUI が必要と
-するシミュレーション基盤を足したパッケージです。C++ のビルドには一切依存せず、
-NumPy と（GUI 用に）matplotlib・tkinter があれば動きます。
+`python/vehicle_models_py` は C++ ライブラリへのバインディングに、GUI が必要と
+するシミュレーション基盤を足したパッケージです。**運動方程式は
+`include/vehicle_models/*.hpp` にのみ存在し**、Python 側はそれを `_core`
+拡張モジュール経由で呼びます。各 `.py` は numpy の呼び出し規約（状態・入力を
+1次元配列にする）と GUI 向けの便利関数だけを持つ再エクスポート層で、物理は
+一切書かれていません。
 
 ```
 python/
+  src/core_module.cpp    pybind11 バインディング（唯一の実装への入口）
   vehicle_models_py/
-    types.py             <- vehicle_models/types.hpp
-    parameters.py        <- vehicle_models/vehicle_parameters.hpp
-    tires.py             <- vehicle_models/tire/tire_models.hpp
-    ackermann.py         <- vehicle_models/ackermann.hpp
-    integrator.py        <- vehicle_models/integrator.hpp
-    unicycle.py          <- vehicle_models/unicycle.hpp
-    kinematic_bicycle.py <- vehicle_models/kinematic_bicycle.hpp
-    dynamic_bicycle.py   <- vehicle_models/dynamic_bicycle.hpp
-    double_track.py      <- vehicle_models/double_track.hpp
-    linear_analysis.py   <- vehicle_models/linear_analysis.hpp
+    _core*.pyd/.so       ビルド成果物
+    types.py             -> vehicle_models/types.hpp
+    parameters.py        -> vehicle_models/vehicle_parameters.hpp
+    tires.py             -> vehicle_models/tire/tire_models.hpp
+    ackermann.py         -> vehicle_models/ackermann.hpp
+    integrator.py        -> vehicle_models/integrator.hpp
+    unicycle.py          -> vehicle_models/unicycle.hpp
+    kinematic_bicycle.py -> vehicle_models/kinematic_bicycle.hpp
+    dynamic_bicycle.py   -> vehicle_models/dynamic_bicycle.hpp
+    double_track.py      -> vehicle_models/double_track.hpp
+    linear_analysis.py   -> vehicle_models/linear_analysis.hpp
     maneuvers.py    ] Python 側にのみ存在する
     runner.py       ] シミュレーション基盤
     performance.py  ]
+    route.py        ]
     gui/                 tkinter + matplotlib のフロントエンド
-  tests/test_port.py     C++ 単体テストに対する検証
+  tests/test_port.py     C++ 単体テストと同じ検査
   tools/make_doc_figures.py
   run_gui.py
 ```
+
+## インストール
+
+拡張モジュールのビルドが必要です。C++17 コンパイラと CMake 3.16 以上を用意して、
+リポジトリのルートで
+
+```bash
+pip install .
+```
+
+開発中はインプレースビルドが便利です。`_core` は
+`python/vehicle_models_py/` に直接出力されるので、そのまま `python run_gui.py`
+が動きます。
+
+```bash
+cmake -S . -B build -DVEHICLE_MODELS_BUILD_PYTHON=ON
+cmake --build build --config Release --target _core
+```
+
+C++ ヘッダを変更したら `_core` を再ビルドしてください。それだけで GUI にも
+反映されます。
 
 ---
 
@@ -326,18 +353,31 @@ $$
 
 ---
 
-## C++ API との意図的な差異
+## C++ API との差異
+
+数式に関わる差異はありません。同じ関数を呼ぶので、同じ入力からは同じ倍精度の値が
+返ります。違うのは呼び出し方だけです。
 
 | C++ | Python | 理由 |
 |---|---|---|
-| 名前付きアクセサを持つ `StateVector<Derived, N>` 構造体 | 1次元 `numpy.ndarray` ＋インデックス定数 | 積分器が1行で書け、ログ・プロットが自然になる |
-| テンプレート `DynamicBicycleModel<Tire>` | `DynamicBicycleModel(params, tire_front, tire_rear)` | Python にテンプレートはない。タイヤは普通のオブジェクト |
-| `setTireStiffness` のオーバーロード群 | `_set_tire_stiffness` 内の `isinstance` ディスパッチ | 効果は同じで、解決が実行時になるだけ |
+| 名前付きアクセサを持つ `StateVector<Derived, N>` 構造体 | 1次元 `numpy.ndarray` ＋インデックス定数 | ログ・プロットが自然になる。境界で固定長構造体に詰め替えている |
+| テンプレート `DynamicBicycleModel<Tire>` | `DynamicBicycleModel(params, tire_front, tire_rear)` | Python にテンプレートはない。3つのインスタンス化を `std::variant` で保持し、構築時にタイヤ型で選ぶ |
 | `tire.corneringStiffness(fz)` | `tire.cornering_stiffness_at(fz)` | `cornering_stiffness` はデータフィールド名として既に使用済み |
-| `WheelQuantities::sum()` | `DoubleTrackForces.load_sum()` | 輪別の量が素の list のため |
+| `WheelQuantities` | 長さ4の `numpy` 配列（`FL/FR/RL/RR` で添字） | 輪別の量をそのままプロットできる |
+| `enum class IntegratorType` | Python の `Enum`（値は `"RK4"` 等の文字列） | GUI が列挙して値で逆引きするため。境界で C++ の enum に変換 |
 | `syncTiresFromParams()` はスティフネスのみコピー | `sync_tires_from_params(sync_friction=False)` | C++ と同じ既定値＋オプトイン（下記参照） |
 | camelCase | snake_case | PEP 8 |
 | プリセット3種 | ＋ `make_oversteer_car_parameters()` | 限界速度が有限になる例はハンドリング解析で最も分かりやすい |
+
+### 2つの制約
+
+**両軸のタイヤは同じクラスでなければなりません。** C++ のモデルは単一のタイヤ型を
+とるテンプレートなので、前後で違うタイヤモデルを混ぜることはできません。混ぜると
+`TypeError` になります。
+
+**`ReferencePoint` や `IntegratorType` の比較には `is` ではなく `==` を使って
+ください。** pybind11 の enum は呼び出しごとに新しいオブジェクトを返すので、Python
+の `Enum` と違い同一性比較が成立しません。
 
 ### 摩擦係数の伝播ギャップ
 
@@ -350,18 +390,20 @@ $$
 \lvert F_y \rvert \le \mu F_z
 $$
 
-が誤った $\mu$ で評価されます。`DoubleTrackModel` は伝播させます。Python 移植は
-既定でこの C++ の挙動を再現しつつ、`sync_tires_from_params(sync_friction=True)`
-を追加しています。GUI と `performance.py` はこのオプトインを使うため、画面上の
-全モデルが同じ路面を共有します。低摩擦車両で Python と C++ の結果を比較する際は、
-両者がこの点で揃っているか確認してください。
+が誤った $\mu$ で評価されます。`DoubleTrackModel` は伝播させます。バインディングは
+既定でこの C++ の挙動をそのまま見せつつ、
+`sync_tires_from_params(sync_friction=True)` を追加しています。GUI と
+`performance.py` はこのオプトインを使うため、画面上の全モデルが同じ路面を共有
+します。C++ 側から直接使う場合は `tire_front.friction` を自分で設定してください。
 
 ---
 
 ## 独自モデルの追加
 
 2つのメソッドを用意すれば既存の積分器で動き、アダプタを足せばランナからも使え
-ます。
+ます。この場合、`step()` / `simulate()` は C++ 版ではなく `integrator.py` の
+Python 実装を使います（C++ の積分器は Python のモデルを呼べないため）。ライブラリ
+本体のモデルを増やすなら、C++ ヘッダに足して `_core` に載せるほうを推奨します。
 
 ```python
 import numpy as np

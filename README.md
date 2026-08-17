@@ -125,11 +125,11 @@ characteristic speed: 28.13 m/s (101.3 km/h)
 
 ## Python シミュレーション GUI
 
-同じモデル群を Python に移植し、GUI シミュレータを [`python/`](python) に用意しています。C++ のビルドは不要です。
+GUI シミュレータを [`python/`](python) に用意しています。モデルは C++ のままで、GUI は pybind11 バインディング経由でそれを呼びます。ヘッダを変更すれば、拡張モジュールを再ビルドするだけで GUI に反映されます。
 
 ```bash
+pip install .                     # C++17 コンパイラと CMake 3.16+ が必要
 cd python
-pip install -r requirements.txt   # numpy, matplotlib
 python run_gui.py
 ```
 
@@ -173,7 +173,7 @@ $$
 
 キネマティックモデルはタイヤのスリップ角なしで即座に旋回するため、ダイナミックモデルの 2 倍以上正確に追従します。つまり「追従誤差が小さい」のはモデルが良いからではなく、誤差の原因を表現できていないからです。経路追従制御をキネマティックモデルだけで検証すると、この差分を見落とします。
 
-移植の妥当性は C++ 単体テストと同じ検査 141 項目で検証済みです（`python tests/test_port.py`）。使い方は [docs_ja/python-gui.md](docs_ja/python-gui.md)（英語版: [docs_en/python-gui.md](docs_en/python-gui.md)）を参照してください。
+バインディングの妥当性は C++ 単体テストと同じ検査 141 項目で検証済みです（`python tests/test_port.py`）。使い方は [docs_ja/python-gui.md](docs_ja/python-gui.md)（英語版: [docs_en/python-gui.md](docs_en/python-gui.md)）を参照してください。
 
 ---
 
@@ -197,7 +197,7 @@ $$
 | 運動方程式（導出つき） | [docs_ja/models.md](docs_ja/models.md) | [docs_en/models.md](docs_en/models.md) |
 | Python GUI | [docs_ja/python-gui.md](docs_ja/python-gui.md) | [docs_en/python-gui.md](docs_en/python-gui.md) |
 | Python API | [docs_ja/python-api.md](docs_ja/python-api.md) | [docs_en/python-api.md](docs_en/python-api.md) |
-| 移植の検証 | [docs_ja/validation.md](docs_ja/validation.md) | [docs_en/validation.md](docs_en/validation.md) |
+| バインディングの検証 | [docs_ja/validation.md](docs_ja/validation.md) | [docs_en/validation.md](docs_en/validation.md) |
 | 索引 | [docs_ja/README.md](docs_ja/README.md) | [docs_en/README.md](docs_en/README.md) |
 
 数式はすべて LaTeX で記述してあり、GitHub 上でそのまま描画されます。

@@ -7,20 +7,22 @@ English edition: [`docs_en/python-gui.md`](../docs_en/python-gui.md)
 どのモデルが必要か、簡単なモデルはどこで妥当でなくなるのか、この車両は実際に何が
 できるのか* —— に答えるために存在します。
 
-モデル本体は C++ ヘッダを直接移植した
-[`python/vehicle_models_py`](../python/vehicle_models_py) です。API は
-[python-api.md](python-api.md)、移植の検証方法は
+モデル本体は C++ ライブラリそのもので、
+[`python/vehicle_models_py`](../python/vehicle_models_py) のバインディング経由で
+呼び出します。API は [python-api.md](python-api.md)、バインディングの検証方法は
 [validation.md](validation.md) を参照してください。
 
 ---
 
 ## 動作要件と起動
 
-Python 3.8 以降に加えて：
+Python 3.8 以降、C++17 コンパイラ、CMake 3.16 以降が必要です。リポジトリのルート
+で：
 
 ```bash
+pip install .                        # _core 拡張モジュールをビルド
+pip install matplotlib               # GUI にはこれも必要
 cd python
-pip install -r requirements.txt      # numpy, matplotlib
 python run_gui.py
 ```
 
@@ -32,9 +34,6 @@ Debian/Ubuntu では `sudo apt install python3-tk` で導入してください�
 ```bash
 python -m vehicle_models_py.gui
 ```
-
-インストールもビルドも不要です。パッケージは純粋な Python で、C++ のビルドから
-独立しています。
 
 ---
 
@@ -435,8 +434,8 @@ $\mu g$ に近づくまで振幅を上げると差が出ます —— 線形タ�
   加速度は常にゼロです。
 - **路面摩擦。** GUI は $\mu$（`friction`）を全モデルのタイヤへ伝播させます。C++ の
   `DynamicBicycleModel::syncTiresFromParams()` はコーナリングスティフネスしかコピー
-  せず、タイヤ側の $\mu$ は既定の 1.0 のままになります。Python 移植は既定でその挙動を
-  保ちますが、GUI は伝播をオプトインするため、画面上の全モデルが同じ路面を共有します。
+  せず、タイヤ側の $\mu$ は既定の 1.0 のままになります。バインディングは既定でその挙動を
+  そのまま見せますが、GUI は伝播をオプトインするため、画面上の全モデルが同じ路面を共有します。
   [python-api.md](python-api.md#摩擦係数の伝播ギャップ) を参照してください。
 - **計算コスト。** 8 s・2 ms のステップ操舵を4モデルで走らせても 1 秒かかりません。
   性能スイートは数秒です。いずれも UI スレッド外で走るので、ウィンドウは応答したまま

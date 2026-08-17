@@ -2,31 +2,57 @@
 
 日本語版: [`docs_ja/python-api.md`](../docs_ja/python-api.md)
 
-`python/vehicle_models_py` is a direct port of the C++ headers, plus the
-simulation infrastructure the GUI needs. It has no dependency on the C++ build:
-NumPy and (for the GUI) matplotlib and tkinter are all it needs.
+`python/vehicle_models_py` is a set of bindings to the C++ library, plus the
+simulation infrastructure the GUI needs. **The equations of motion exist only
+in `include/vehicle_models/*.hpp`**; Python reaches them through the `_core`
+extension module. Each `.py` below is a re-export shim that adds the numpy
+calling convention (states and inputs as 1-D arrays) and a few GUI
+conveniences, and contains no physics.
 
 ```
 python/
+  src/core_module.cpp    pybind11 bindings — the one entry point
   vehicle_models_py/
-    types.py             <- vehicle_models/types.hpp
-    parameters.py        <- vehicle_models/vehicle_parameters.hpp
-    tires.py             <- vehicle_models/tire/tire_models.hpp
-    ackermann.py         <- vehicle_models/ackermann.hpp
-    integrator.py        <- vehicle_models/integrator.hpp
-    unicycle.py          <- vehicle_models/unicycle.hpp
-    kinematic_bicycle.py <- vehicle_models/kinematic_bicycle.hpp
-    dynamic_bicycle.py   <- vehicle_models/dynamic_bicycle.hpp
-    double_track.py      <- vehicle_models/double_track.hpp
-    linear_analysis.py   <- vehicle_models/linear_analysis.hpp
+    _core*.pyd/.so       build artefact
+    types.py             -> vehicle_models/types.hpp
+    parameters.py        -> vehicle_models/vehicle_parameters.hpp
+    tires.py             -> vehicle_models/tire/tire_models.hpp
+    ackermann.py         -> vehicle_models/ackermann.hpp
+    integrator.py        -> vehicle_models/integrator.hpp
+    unicycle.py          -> vehicle_models/unicycle.hpp
+    kinematic_bicycle.py -> vehicle_models/kinematic_bicycle.hpp
+    dynamic_bicycle.py   -> vehicle_models/dynamic_bicycle.hpp
+    double_track.py      -> vehicle_models/double_track.hpp
+    linear_analysis.py   -> vehicle_models/linear_analysis.hpp
     maneuvers.py    ] simulation infrastructure that exists
     runner.py       ] only on the Python side
     performance.py  ]
+    route.py        ]
     gui/                 tkinter + matplotlib front end
   tests/test_port.py     validation against the C++ unit tests
   tools/make_doc_figures.py
   run_gui.py
 ```
+
+## Installing
+
+The extension module has to be built, so a C++17 compiler and CMake 3.16 or
+newer are required. From the repository root:
+
+```bash
+pip install .
+```
+
+For development an in-place build is handier. `_core` is written straight into
+`python/vehicle_models_py/`, so `python run_gui.py` picks it up:
+
+```bash
+cmake -S . -B build -DVEHICLE_MODELS_BUILD_PYTHON=ON
+cmake --build build --config Release --target _core
+```
+
+After changing a C++ header, rebuild `_core`; that is all the GUI needs to pick
+the change up.
 
 ---
 
@@ -330,18 +356,32 @@ from a ramp steer, so the slope near the origin is the understeer gradient $K$.
 
 ---
 
-## Deliberate differences from the C++ API
+## Differences from the C++ API
+
+None of them touch the mathematics. The same functions are called, so the same
+inputs give the same double-precision results. Only the calling convention
+differs.
 
 | C++ | Python | Why |
 |---|---|---|
-| `StateVector<Derived, N>` structs with named accessors | 1-D `numpy.ndarray` plus index constants | Keeps the integrators one-liners and makes logging and plotting natural |
-| `DynamicBicycleModel<Tire>` template | `DynamicBicycleModel(params, tire_front, tire_rear)` | Python has no templates; the tire is an ordinary object |
-| `setTireStiffness` overload set | `isinstance` dispatch in `_set_tire_stiffness` | Same effect, resolved at run time |
+| `StateVector<Derived, N>` structs with named accessors | 1-D `numpy.ndarray` plus index constants | Makes logging and plotting natural; the boundary copies into the fixed-size struct |
+| `DynamicBicycleModel<Tire>` template | `DynamicBicycleModel(params, tire_front, tire_rear)` | Python has no templates. The three instantiations are held in a `std::variant` and picked by tire type at construction |
 | `tire.corneringStiffness(fz)` | `tire.cornering_stiffness_at(fz)` | `cornering_stiffness` is already the name of the data field |
-| `WheelQuantities::sum()` | `DoubleTrackForces.load_sum()` | Per-wheel quantities are plain lists |
+| `WheelQuantities` | length-4 `numpy` array, indexed with `FL/FR/RL/RR` | Per-wheel quantities plot directly |
+| `enum class IntegratorType` | a Python `Enum` whose values are strings (`"RK4"`, …) | The GUI enumerates it and looks members up by value; converted to the C++ enum at the boundary |
 | `syncTiresFromParams()` copies stiffness only | `sync_tires_from_params(sync_friction=False)` | Same default as C++, with an opt-in — see below |
 | camelCase | snake_case | PEP 8 |
 | three presets | plus `make_oversteer_car_parameters()` | A finite critical speed is the most instructive case in the handling view |
+
+### Two constraints
+
+**Both axles must use the same tire class.** The C++ model is a template over a
+single tire type, so front and rear cannot mix tire models; doing so raises
+`TypeError`.
+
+**Compare `ReferencePoint` and `IntegratorType` with `==`, not `is`.** pybind11
+enums hand back a fresh object on every access, so unlike a Python `Enum` they
+do not compare equal by identity.
 
 ### The friction propagation gap
 
@@ -355,18 +395,20 @@ $$
 $$
 
 is evaluated with the wrong $\mu$. `DoubleTrackModel` does propagate it.
-The Python port reproduces the C++ behaviour by default, and adds
+The bindings expose the C++ behaviour unchanged by default and add
 `sync_tires_from_params(sync_friction=True)`; the GUI and `performance.py` use
-the opt-in, so every model on screen shares one road surface. If you compare
-Python and C++ results for a low-friction vehicle, make sure both sides agree on
-this point.
+the opt-in, so every model on screen shares one road surface. Using the library
+directly from C++, set `tire_front.friction` yourself.
 
 ---
 
 ## Adding your own model
 
 Provide the two methods and it works with the existing integrators, and with the
-runner if you also add an adapter:
+runner if you also add an adapter. In that case `step()` and `simulate()` fall
+back to the Python implementation in `integrator.py`, because the C++ integrator
+cannot call into a Python model. To add a model to the library proper, add it to
+the C++ headers and expose it through `_core` instead.
 
 ```python
 import numpy as np

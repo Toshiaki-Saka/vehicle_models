@@ -596,7 +596,7 @@ $\delta$ changes. The form $\dot v_y = (v_{y,\text{kin}} - v_y)/\tau$ is a
 stable first-order filter whose fixed point *is* the kinematic solution, so the
 state converges to it with time constant $\tau$ while remaining differentiable —
 which is what the integrator needs. Above $v_{hi}$, $\lambda = 1$ and the model
-is bit-for-bit the plain dynamic one (the port test checks this to $10^{-12}$).
+is bit-for-bit the plain dynamic one (the unit test checks this to $10^{-12}$).
 
 ---
 
@@ -834,8 +834,8 @@ $$
 $$
 
 `test_integrator.cpp` measures exactly these ratios (2, 4 and 16) on a
-quarter-circle trajectory, and the figure above plots the same experiment from
-the Python port: three straight lines in log-log with slopes 1, 2 and 4.
+quarter-circle trajectory, and the figure above plots the same experiment
+driven from Python: three straight lines in log-log with slopes 1, 2 and 4.
 
 RK4 is more than enough at a 10 ms control period; choose Euler when imitating a
 fixed-point implementation on the target ECU.

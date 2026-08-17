@@ -10,7 +10,7 @@ English edition: [`docs_en/README.md`](../docs_en/README.md)
 | [models.md](models.md) | 全モデルの運動方程式を仮定から導出。図つき |
 | [python-gui.md](python-gui.md) | Python シミュレーション GUI：導入、各タブ、実験例 |
 | [python-api.md](python-api.md) | Python パッケージリファレンスと C++ API との差異 |
-| [validation.md](validation.md) | Python 移植を C++ ライブラリに対して検証する方法 |
+| [validation.md](validation.md) | Python バインディングを C++ ライブラリに対して検証する方法 |
 
 数式は LaTeX で記述してあり、GitHub・VS Code など数式表示に対応した Markdown
 ビューアでそのまま描画されます。
@@ -29,9 +29,10 @@ English edition: [`docs_en/README.md`](../docs_en/README.md)
 - `-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror` で警告ゼロ
 - 単体テストは解析解との突き合わせ（定常円旋回、収束次数、荷重移動の総和）で検証
 
-C++ ライブラリと並んで、**GUI シミュレータ付きの Python 移植**が
-[`python/`](../python) にあります。1 つのパラメータセットで全モデルを駆動し、その
-差異を可視化します（[python-gui.md](python-gui.md) を参照）。
+**GUI シミュレータ**が [`python/`](../python) にあります。モデルはこの C++ ライブラリ
+のままで、GUI は pybind11 バインディング経由でそれを呼びます。1 つのパラメータ
+セットで全モデルを駆動し、その差異を可視化します（[python-gui.md](python-gui.md)
+を参照）。
 
 ---
 

@@ -8,19 +8,22 @@ questions the numbers alone do not: *which model do I need for this manoeuvre,
 where does the simpler one stop being valid, and what can this vehicle actually
 do?*
 
-The models come from [`python/vehicle_models_py`](../python/vehicle_models_py), a
-direct port of the C++ headers — see [python-api.md](python-api.md) for the API
-and [validation.md](validation.md) for how the port is verified.
+The models are the C++ library itself, reached through the bindings in
+[`python/vehicle_models_py`](../python/vehicle_models_py) — see
+[python-api.md](python-api.md) for the API and
+[validation.md](validation.md) for how the bindings are verified.
 
 ---
 
 ## Requirements and start-up
 
-Python 3.8 or newer, plus:
+Python 3.8 or newer, a C++17 compiler and CMake 3.16 or newer. From the
+repository root:
 
 ```bash
+pip install .                        # builds the _core extension
+pip install matplotlib               # the GUI also needs it
 cd python
-pip install -r requirements.txt      # numpy, matplotlib
 python run_gui.py
 ```
 
@@ -32,9 +35,6 @@ Alternatively, with `python/` on the path:
 ```bash
 python -m vehicle_models_py.gui
 ```
-
-Nothing has to be installed or built: the package is pure Python and independent
-of the C++ build.
 
 ---
 

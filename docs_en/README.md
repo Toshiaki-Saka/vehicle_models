@@ -11,7 +11,7 @@ Japanese counterpart with the same file name under
 | [models.md](models.md) | Every equation of motion derived from its assumptions, with figures |
 | [python-gui.md](python-gui.md) | The Python simulation GUI: install, tabs, worked examples |
 | [python-api.md](python-api.md) | Python package reference and the differences from the C++ API |
-| [validation.md](validation.md) | How the Python port is verified against the C++ library |
+| [validation.md](validation.md) | How the Python bindings are verified against the C++ library |
 
 Formulas are written in LaTeX and render on GitHub, in VS Code and in any
 Markdown viewer with math support.
@@ -32,9 +32,10 @@ and linear handling analysis — with no external dependencies.
 - Unit tests check the models against analytic solutions (steady state
   cornering, convergence order, load transfer sums)
 
-Alongside the C++ library there is a **Python port with a simulation GUI** under
-[`python/`](../python), which drives every model from one shared parameter set
-and shows the differences between them; see [python-gui.md](python-gui.md).
+A **simulation GUI** lives under [`python/`](../python). The models stay in this
+C++ library; the GUI reaches them through pybind11 bindings, drives every model
+from one shared parameter set and shows the differences between them. See
+[python-gui.md](python-gui.md).
 
 ---
 

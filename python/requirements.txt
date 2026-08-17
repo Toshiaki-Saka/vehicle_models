@@ -1,2 +1,6 @@
+# Runtime dependencies of the GUI and the demo scripts.
+# The models themselves come from the compiled _core extension: build it with
+# `pip install .` at the repository root, or with
+# `cmake -S . -B build -DVEHICLE_MODELS_BUILD_PYTHON=ON`.
 numpy>=1.21
 matplotlib>=3.5

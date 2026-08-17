@@ -1,9 +1,12 @@
-# Validating the Python port
+# Validating the Python bindings
 
 日本語版: [`docs_ja/validation.md`](../docs_ja/validation.md)
 
-The Python models are only useful if they are the *same* models. Three
-independent checks back that up.
+The Python side does not reimplement the models: it calls
+`include/vehicle_models/*.hpp` through the `_core` pybind11 module. So the
+question is no longer whether two implementations agree. What has to be
+verified is that **the bindings do not misplace a state element, an argument
+order or a unit**, and the three checks below cover exactly that.
 
 ---
 
@@ -51,16 +54,19 @@ $$
 \qquad p = 1,\ 2,\ 4
 $$
 
-for Euler, Heun and RK4 respectively.
+for Euler, Heun and RK4 respectively. It doubles as evidence that the
+integration itself runs in C++: the orders come out because `_core`
+instantiates the `integrator.hpp` templates on a type-erased model. There is no
+copy of the integrator on the Python side.
 
 ---
 
 ## 2. The documented C++ outputs, reproduced
 
-The figures published in the C++ `README.md` are reproduced exactly by the
-Python port:
+The figures published in the C++ `README.md` come back unchanged when called
+from Python:
 
-| Quantity | C++ README | Python port |
+| Quantity | C++ README | Python |
 |---|---|---|
 | Understeer gradient (passenger car) | `+0.0034 rad/(m/s²)` / `+1.917 deg/g` | `+0.0034` / `+1.917 deg/g` |
 | Static margin | `+0.1056` | `+0.1056` |
@@ -87,8 +93,8 @@ print('%.2f m/s' % a.characteristic_speed(p))
 ## 3. Direct comparison with the compiled example
 
 [`python/tools/compare_with_cpp.py`](../python/tools/compare_with_cpp.py) runs
-the compiled `step_steer` example, reproduces the identical experiment in
-Python, and reports the largest absolute difference per channel:
+the compiled `step_steer` example, reproduces the identical experiment through
+the bindings, and reports the largest absolute difference per channel:
 
 $$
 \varepsilon_{\text{channel}}
@@ -96,51 +102,65 @@ $$
 $$
 
 ```bash
-cmake -S . -B build -DVEHICLE_MODELS_BUILD_EXAMPLES=ON
-cmake --build build -j
+cmake -S . -B build -DVEHICLE_MODELS_BUILD_EXAMPLES=ON -DVEHICLE_MODELS_BUILD_PYTHON=ON
+cmake --build build --config Release
 cd python
-python tools/compare_with_cpp.py ../build/step_steer
+python tools/compare_with_cpp.py ../build/Release/step_steer
 ```
 
-Both sides run the same equations, the same RK4 integrator and the same
-parameters over 2501 samples, so the differences should be at round-off level.
-The script exits non-zero if any channel drifts beyond $\varepsilon > 10^{-9}$,
-which makes it usable as a regression check in CI once a C++ toolchain is
-available.
+```
+channel            max |diff|      tolerance    verdict
+t                   3.286e-13      5.000e-05         ok
+steer_deg           0.000e+00      5.000e-05         ok
+r_kin               2.275e-07      5.000e-07         ok
+r_dyn               4.995e-07      5.000e-07         ok
+r_dtr               4.999e-07      5.000e-07         ok
+beta_dyn_deg        5.000e-07      5.000e-07         ok
+ay_dyn              4.996e-07      5.000e-07         ok
+ay_dtr              4.998e-07      5.000e-07         ok
+```
 
-> This third check requires a C++ compiler. It was **not** executed while the
-> port was written — that environment had CMake but no compiler — so the claim
-> it makes is "run this to confirm", not "this was confirmed here". Checks 1 and
-> 2 were both run and pass.
+**Where the tolerance comes from.** Both sides execute the same C++ code, so
+the only difference left is the one the CSV introduces.
+`examples/step_steer.cpp` prints `t` and `steer_deg` with `%.4f` and the rest
+with `%.6f`, which quantises what it reports. The tolerance is half that
+quantum — the tightest bound the file format admits. Every channel above sits
+right at that bound, which is what perfect agreement looks like through a
+rounded CSV.
+
+> This script used to apply a flat $10^{-9}$ to every channel. With the output
+> rounded to $10^{-6}$ that condition is unreachable no matter how well the two
+> sides agree, so the check could never pass. The flaw went unnoticed because
+> the check had never been executed.
 
 ---
 
-## Known differences
+## Equivalence at the migration
 
-There is one behavioural difference, and it is deliberate:
-`DynamicBicycleModel::syncTiresFromParams()` in C++ propagates the cornering
-stiffness but not `params.friction`, so a single-track model built from a
-low-friction preset still uses tires with $\mu = 1.0$. The Python port
-reproduces that by default and offers `sync_tires_from_params(sync_friction=True)`
-as an opt-in, which the GUI and `performance.py` use so that every model on
-screen shares one road surface. See
-[python-api.md](python-api.md#the-friction-propagation-gap).
+When the models moved behind the C++ bindings, the numerical equivalence with
+the previous pure-Python implementation was measured directly: 4 presets × 7
+models × 3 tire models = 84 combinations, all 23 `runner` channels, 400 steps
+each. **Every channel agreed to within $10^{-9}$.** Regenerating the figures in
+`docs_en/images/` reproduced the committed files byte for byte.
 
-Anything else that differs between the two implementations is a bug in the port.
+The migration surfaced exactly one behavioural difference, since fixed.
+pybind11 enums return a fresh object on every access, so `runner.py` comparing
+`ReferencePoint` with `is` always took the false branch and evaluated the
+CoG-referenced kinematic model as if it were rear-axle referenced. It now uses
+`==`. Keep that in mind when writing similar comparisons.
 
 ---
 
 ## Numerical notes
 
-- Both implementations use IEEE-754 doubles and the same order of operations in
-  the derivative functions, so agreement to round-off is expected rather than
-  lucky.
+- States are 1-D `numpy` arrays on the Python side and are copied into the
+  fixed-size C++ `StateVector` at the boundary. The conversion moves values
+  only; no rounding happens.
 - The manoeuvre runner samples the outputs *before* the integration step, so a
   logged sample at time $t$ is the state at $t$, not at $t + \Delta t$. The C++
   `step_steer` example does the same.
 - `simulate()` shortens the final sub-step to land exactly on the requested
-  duration, again as in C++: with $N = \lfloor T/\Delta t \rfloor$ full steps the
-  last one is $T - N\Delta t$.
+  duration: with $N = \lfloor T/\Delta t \rfloor$ full steps the last one is
+  $T - N\Delta t$. This is the C++ implementation, called directly.
 - The intermediate RK4 stages $k_1 \dots k_4$ are not passed through
-  `normalize_state()`, in both implementations. Only the final state of a step is
-  normalized.
+  `normalizeState()`. Only the final state of a step is normalized.
