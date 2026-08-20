@@ -8,12 +8,11 @@
 Runs the compiled example, reproduces exactly the same experiment through the
 Python bindings, and reports the largest absolute difference per channel.
 
-Both sides now execute the same C++ code, so the only difference left is the
-one the CSV introduces: examples/step_steer.cpp prints with "%.4f" for t and
-steer_deg and "%.6f" for the rest, which quantises the values it reports. The
-per-channel tolerance below is half of that quantum -- the tightest bound the
-file format admits. A tighter one (the 1e-9 this script used to apply to every
-column) can never be met no matter how well the two sides agree.
+Both sides execute the same C++ code, and examples/step_steer.cpp now prints
+with std::setprecision(17) -- enough significant digits for every double to
+round-trip exactly -- so the CSV no longer quantises what it reports. What
+remains is only the agreement of the two call paths themselves, which the
+tolerance below is set to measure.
 
 Exit code 0 if every channel agrees within its tolerance.
 """
@@ -36,20 +35,17 @@ from vehicle_models_py import (DoubleTrackModel, DynamicBicycleModel,
                                make_passenger_car_parameters, rad2deg,
                                side_slip_of, step)
 
-# Decimal places examples/step_steer.cpp prints per column, in column order.
-CPP_DECIMALS = {"t": 4, "steer_deg": 4}
-CPP_DECIMALS_DEFAULT = 6
+# Same contract as math.isclose: a channel agrees where every sample satisfies
+# |a - b| <= max(REL_TOL * max(|a|, |b|), ABS_TOL). The relative term carries
+# columns that grow with the manoeuvre; ABS_TOL keeps the bound meaningful
+# where a channel passes through zero.
+REL_TOL = 1e-9
+ABS_TOL = 1e-12
 
 
-def tolerance_for(channel: str) -> float:
-    """Half the quantum of the printed decimal representation.
-
-    A value landing exactly on the half-quantum is the legitimate worst case,
-    so the bound carries a relative slack to keep that tie from flipping on
-    the rounding of the comparison itself.
-    """
-    quantum = 10.0 ** -CPP_DECIMALS.get(channel, CPP_DECIMALS_DEFAULT)
-    return 0.5 * quantum * (1.0 + 1e-9)
+def tolerance_for(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Per-sample tolerance for two columns being compared."""
+    return np.maximum(REL_TOL * np.maximum(np.abs(a), np.abs(b)), ABS_TOL)
 
 
 # examples/step_steer.cpp
@@ -116,19 +112,25 @@ def main() -> int:
               % (len(cpp), len(py), n))
     cpp, py = cpp[:n], py[:n]
 
-    print("%-14s %14s %14s %10s" % ("channel", "max |diff|", "tolerance",
+    # The tolerance varies per sample, so the sample that decides the verdict
+    # is the one closest to its own bound -- not, in general, the one with the
+    # largest absolute difference. Both reported numbers come from that sample.
+    print("(at the sample closest to its own bound)")
+    print("%-14s %14s %14s %10s" % ("channel", "|diff|", "tolerance",
                                     "verdict"))
     worst_ok = True
     for i, name in enumerate(header):
-        diff = float(np.max(np.abs(cpp[:, i] - py[:, i])))
-        tol = tolerance_for(name)
-        ok = diff <= tol
+        diff = np.abs(cpp[:, i] - py[:, i])
+        tol = tolerance_for(cpp[:, i], py[:, i])
+        ok = bool(np.all(diff <= tol))
         worst_ok = worst_ok and ok
+        binding = int(np.argmax(diff / tol))
         print("%-14s %14.3e %14.3e %10s"
-              % (name, diff, tol, "ok" if ok else "MISMATCH"))
+              % (name, diff[binding], tol[binding], "ok" if ok else "MISMATCH"))
 
-    print("\n%s over %d samples (tolerance = half the printed decimal quantum)"
-          % ("all channels agree" if worst_ok else "DIFFERENCES FOUND", n))
+    print("\n%s over %d samples (rel_tol=%g, abs_tol=%g)"
+          % ("all channels agree" if worst_ok else "DIFFERENCES FOUND", n,
+             REL_TOL, ABS_TOL))
     return 0 if worst_ok else 1
 
 

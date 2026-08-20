@@ -6,6 +6,8 @@
 //   step_steer > step_steer.csv
 //
 #include <cstdio>
+#include <iomanip>
+#include <iostream>
 
 #include "vehicle_models/vehicle_models.hpp"
 
@@ -28,7 +30,13 @@ int main() {
   auto x_dyn = DynamicBicycleState::make(0, 0, 0, vx, 0, 0);
   auto x_dtr = DynamicBicycleState::make(0, 0, 0, vx, 0, 0);
 
-  std::printf("t,steer_deg,r_kin,r_dyn,r_dtr,beta_dyn_deg,ay_dyn,ay_dtr\n");
+  // 17 significant digits is the shortest precision at which every double
+  // round-trips exactly, so the CSV carries the full computed value and adds
+  // no quantisation of its own -- see python/tools/compare_with_cpp.py, which
+  // compares this output against the Python port at 1e-9 relative tolerance.
+  std::cout << std::setprecision(17);
+
+  std::cout << "t,steer_deg,r_kin,r_dyn,r_dtr,beta_dyn_deg,ay_dyn,ay_dtr\n";
   for (double t = 0.0; t <= t_end + 1e-9; t += dt) {
     const double steer = (t >= t_step) ? delta : 0.0;
 
@@ -39,9 +47,10 @@ int main() {
     const double ay_dyn = linear_tire.measuredLateralAcceleration(x_dyn, u_dyn);
     const double ay_dtr = double_track.computeForces(x_dtr, u_dyn).ay;
 
-    std::printf("%.4f,%.4f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", t, rad2deg(steer),
-                r_kin, x_dyn.yawRate(), x_dtr.yawRate(),
-                rad2deg(x_dyn.sideSlip()), ay_dyn, ay_dtr);
+    std::cout << t << ',' << rad2deg(steer) << ',' << r_kin << ','
+              << x_dyn.yawRate() << ',' << x_dtr.yawRate() << ','
+              << rad2deg(x_dyn.sideSlip()) << ',' << ay_dyn << ',' << ay_dtr
+              << '\n';
 
     x_kin = step(kinematic, x_kin, u_kin, dt);
     x_dyn = step(linear_tire, x_dyn, u_dyn, dt);

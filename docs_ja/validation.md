@@ -90,15 +90,8 @@ print('%.2f m/s' % a.characteristic_speed(p))
 ## 3. コンパイル済み実行例との直接比較
 
 [`python/tools/compare_with_cpp.py`](../python/tools/compare_with_cpp.py) は
-ビルド済みの `step_steer` を実行し、同一の実験を Python 側から再現して、チャネル
-ごとの最大絶対差
-
-$$
-\varepsilon_{\text{channel}}
-= \max_{k}\ \bigl\lvert y^{\text{C++}}_k - y^{\text{Py}}_k \bigr\rvert
-$$
-
-を報告します。
+ビルド済みの `step_steer` を実行し、同一の実験を Python 側から再現して、全チャネルの
+全サンプルを後述の許容値と照合し、境界に最も近いサンプルを報告します。
 
 ```bash
 cmake -S . -B build -DVEHICLE_MODELS_BUILD_EXAMPLES=ON -DVEHICLE_MODELS_BUILD_PYTHON=ON
@@ -108,28 +101,41 @@ python tools/compare_with_cpp.py ../build/Release/step_steer
 ```
 
 ```
-channel            max |diff|      tolerance    verdict
-t                   3.286e-13      5.000e-05         ok
-steer_deg           0.000e+00      5.000e-05         ok
-r_kin               2.275e-07      5.000e-07         ok
-r_dyn               4.995e-07      5.000e-07         ok
-r_dtr               4.999e-07      5.000e-07         ok
-beta_dyn_deg        5.000e-07      5.000e-07         ok
-ay_dyn              4.996e-07      5.000e-07         ok
-ay_dtr              4.998e-07      5.000e-07         ok
+(at the sample closest to its own bound)
+channel                |diff|      tolerance    verdict
+t                   0.000e+00      1.000e-12         ok
+steer_deg           0.000e+00      1.000e-12         ok
+r_kin               0.000e+00      1.000e-12         ok
+r_dyn               0.000e+00      1.000e-12         ok
+r_dtr               0.000e+00      1.000e-12         ok
+beta_dyn_deg        0.000e+00      1.000e-12         ok
+ay_dyn              0.000e+00      1.000e-12         ok
+ay_dtr              0.000e+00      1.000e-12         ok
 ```
 
-**許容値の根拠。** 両者は同じ C++ コードを実行するので、残る差は CSV が持ち込む
-ものだけです。`examples/step_steer.cpp` は `t` と `steer_deg` を `%.4f`、残りを
-`%.6f` で出力するため、報告値はその桁で量子化されます。許容値はその量子化幅の
-ちょうど半分、すなわちこのファイル形式で達成しうる最も厳しい境界です。上の結果は
-全チャネルがその境界に張り付いており、これは両者が完全に一致しているときに期待
-される姿です。
+**許容値の根拠。** 両者は同じ C++ コードを実行するので、比較が見うる差は CSV が
+持ち込むものだけです。`examples/step_steer.cpp` は `std::setprecision(17)` で
+出力します。17 桁は `double` が厳密に往復する最短の精度なので、ファイルは計算値を
+そのまま運び、量子化を一切加えません。残るのは 2 つの呼び出し経路そのものの一致度
+であり、検査は `math.isclose` と同じ形でその境界を定めます。
 
-> このスクリプトは以前、全チャネルに一律 $10^{-9}$ を課していました。出力が
-> $10^{-6}$ 刻みで丸められている以上その条件は原理的に満たせず、実装がどれだけ
-> 一致していても常に失敗します。移植当時この検査が実行されていなかったため、
-> この欠陥は検出されていませんでした。
+$$
+\bigl\lvert y^{\text{C++}}_k - y^{\text{Py}}_k \bigr\rvert
+\le \max\bigl(\varepsilon_{\text{rel}} \max(\lvert y^{\text{C++}}_k \rvert,
+\lvert y^{\text{Py}}_k \rvert),\ \varepsilon_{\text{abs}}\bigr),
+\qquad
+\varepsilon_{\text{rel}} = 10^{-9},\quad \varepsilon_{\text{abs}} = 10^{-12}
+$$
+
+全チャネルがビット単位で一致するため、報告される差はちょうど 0 で、境界には
+まったく近づきません。`tolerance` 列は境界に最も近いサンプルでの値を示しますが、
+完全一致の場合それは先頭行であり、そこでは全チャネルが 0 なので
+$`\varepsilon_{\text{abs}}`$ が効いています。
+
+> 以前の版は CSV を `%.4f` と `%.6f` で出力しながら一律 $10^{-9}$ を課していました。
+> 丸められた出力では、実装がどれだけ一致していても満たせない条件です。まず許容値を
+> 印字桁の量子化幅の半分へ緩めて検査を成立させ、次に出力精度そのものを上げることで
+> 量子化を取り除き、厳しい境界を維持できるようにしました。
 
 ---
 

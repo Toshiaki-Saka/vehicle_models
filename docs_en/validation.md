@@ -94,12 +94,8 @@ print('%.2f m/s' % a.characteristic_speed(p))
 
 [`python/tools/compare_with_cpp.py`](../python/tools/compare_with_cpp.py) runs
 the compiled `step_steer` example, reproduces the identical experiment through
-the bindings, and reports the largest absolute difference per channel:
-
-$$
-\varepsilon_{\text{channel}}
-= \max_{k}\ \bigl\lvert y^{\text{C++}}_k - y^{\text{Py}}_k \bigr\rvert
-$$
+the bindings, and checks every sample of every channel against the tolerance
+defined below, reporting the sample that comes closest to it:
 
 ```bash
 cmake -S . -B build -DVEHICLE_MODELS_BUILD_EXAMPLES=ON -DVEHICLE_MODELS_BUILD_PYTHON=ON
@@ -109,29 +105,44 @@ python tools/compare_with_cpp.py ../build/Release/step_steer
 ```
 
 ```
-channel            max |diff|      tolerance    verdict
-t                   3.286e-13      5.000e-05         ok
-steer_deg           0.000e+00      5.000e-05         ok
-r_kin               2.275e-07      5.000e-07         ok
-r_dyn               4.995e-07      5.000e-07         ok
-r_dtr               4.999e-07      5.000e-07         ok
-beta_dyn_deg        5.000e-07      5.000e-07         ok
-ay_dyn              4.996e-07      5.000e-07         ok
-ay_dtr              4.998e-07      5.000e-07         ok
+(at the sample closest to its own bound)
+channel                |diff|      tolerance    verdict
+t                   0.000e+00      1.000e-12         ok
+steer_deg           0.000e+00      1.000e-12         ok
+r_kin               0.000e+00      1.000e-12         ok
+r_dyn               0.000e+00      1.000e-12         ok
+r_dtr               0.000e+00      1.000e-12         ok
+beta_dyn_deg        0.000e+00      1.000e-12         ok
+ay_dyn              0.000e+00      1.000e-12         ok
+ay_dtr              0.000e+00      1.000e-12         ok
 ```
 
 **Where the tolerance comes from.** Both sides execute the same C++ code, so
-the only difference left is the one the CSV introduces.
-`examples/step_steer.cpp` prints `t` and `steer_deg` with `%.4f` and the rest
-with `%.6f`, which quantises what it reports. The tolerance is half that
-quantum — the tightest bound the file format admits. Every channel above sits
-right at that bound, which is what perfect agreement looks like through a
-rounded CSV.
+the only difference the comparison could see is one the CSV introduces.
+`examples/step_steer.cpp` writes with `std::setprecision(17)`, the shortest
+precision at which every `double` round-trips exactly, so the file carries the
+computed value unchanged and contributes nothing. What is left is the
+agreement of the two call paths, and the check bounds it the way
+`math.isclose` does:
 
-> This script used to apply a flat $10^{-9}$ to every channel. With the output
-> rounded to $10^{-6}$ that condition is unreachable no matter how well the two
-> sides agree, so the check could never pass. The flaw went unnoticed because
-> the check had never been executed.
+$$
+\bigl\lvert y^{\text{C++}}_k - y^{\text{Py}}_k \bigr\rvert
+\le \max\bigl(\varepsilon_{\text{rel}} \max(\lvert y^{\text{C++}}_k \rvert,
+\lvert y^{\text{Py}}_k \rvert),\ \varepsilon_{\text{abs}}\bigr),
+\qquad
+\varepsilon_{\text{rel}} = 10^{-9},\quad \varepsilon_{\text{abs}} = 10^{-12}
+$$
+
+Every channel comes out bit-identical, so the reported difference is exactly
+zero and the bound is never approached. The `tolerance` column shows the bound
+at the sample closest to it, which for an exact match is the first row, where
+all channels are zero and $`\varepsilon_{\text{abs}}`$ governs.
+
+> An earlier revision printed the CSV with `%.4f` and `%.6f` while checking a
+> flat $10^{-9}$ — a condition the rounded output could never meet no matter how
+> well the two sides agreed. The tolerance was first relaxed to half the printed
+> quantum to make the check honest; raising the output precision instead removed
+> the quantisation altogether and let the tight bound stand.
 
 ---
 
